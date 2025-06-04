@@ -1,0 +1,52 @@
+<!--
+    {{ ansible_managed }} Changes may be lost.
+    last updated: {{ template_run_date }}
+-->
+<icecast>
+  <location>Here</location>
+  <admin>{{ icecast_adminuser }}@{{ icecast_hostname }}</admin>
+  <limits>
+    <sources>2</sources>
+  </limits>
+  <authentication>
+    <source-password>{{ icecast_sourcepw }}</source-password>
+    {% if icecast_relaypw is defined %}<relay-password>{{ icecast_relaypw }}</relay-password>{% endif +%}
+    <admin-user>{{ icecast_adminuser }}</admin-user>
+    <admin-password>{{ icecast_adminpw }}</admin-password>
+  </authentication>
+  <hostname>{{ icecast_hostname }}</hostname>
+  {%+ for icecast_port in icecast_ports +%}
+  <listen-socket>
+    <port>{{ icecast_port }}</port>
+    {% if icecast_port == 443 -%}<ssl>1</ssl>{% endif +%}
+  </listen-socket>
+  {% endfor +%}
+  {%+ if icecast_optional_section is defined -%}{{ icecast_optional_section }}{%- endif +%}
+  <fileserve>1</fileserve>
+  <paths>
+    <basedir>/etc/icecast2</basedir>
+    <logdir>/etc/icecast2/log</logdir>
+    <webroot>/etc/icecast2/web</webroot>
+    <adminroot>/etc/icecast2/admin</adminroot>
+    <!-- PID file should match the /etc/systemd/system/icecast2.service. Does this matter? -->
+    <pidfile>/etc/icecast2/icecast.pid</pidfile>
+    {% if 443 in icecast_ports +%}<ssl-certificate>/etc/icecast2/icecast.pem</ssl-certificate>{% endif +%}
+    <alias source="/" dest="/index.html"/>
+  </paths>
+  <logging>
+    <accesslog>access.log</accesslog>
+    <errorlog>error.log</errorlog>
+    <loglevel>3</loglevel> <!-- 4 Debug, 3 Info, 2 Warn, 1 Error -->
+    <logsize>10000</logsize>
+    <logarchive>1</logarchive>
+  </logging>
+  <security>
+    <chroot>0</chroot>
+    <!--
+    <changeowner>
+      <user>icecast2</user>
+      <group>icecast</group>
+    </changeowner>
+    -->
+  </security>
+</icecast>

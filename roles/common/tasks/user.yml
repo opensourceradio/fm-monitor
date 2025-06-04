@@ -1,0 +1,84 @@
+---
+# roles/common/tasks/user.yml
+
+- name: Z Shell.
+  become: true
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - zsh
+    - zsh-autosuggestions
+    - zsh-syntax-highlighting
+  tags:
+    - device_user
+
+- name: User "{{ device_user }}".
+  become: true
+  ansible.builtin.user:
+    name: "{{ device_user }}"
+    comment: "{{ device_user_gecos }}"
+    create_home: true
+    append: true
+    groups:
+      - "{{ sudo_group }}"
+      - audio
+    shell: "/bin/zsh"
+    state: present
+  tags:
+    - device_user
+
+- name: The authorized_keys file.
+  become: true
+  ansible.posix.authorized_key:
+    user: "{{ device_user }}"
+    state: present
+    key: "{{ item }}"
+  with_file:
+    - ssh-keys/id_ed25519.pub
+    - ssh-keys/id_rsa.pub
+  tags:
+    - authorized_keys
+    - device_user
+    - ssh
+
+- name: Persistent user session with loginctl.
+  become: true
+  ansible.builtin.command:
+    argv:
+      - loginctl
+      - enable-linger
+      - "{{ device_user }}"
+  changed_when: false
+  tags:
+    - device_user
+
+- name: ZSH settings.
+  remote_user: "{{ device_user }}"
+  ansible.builtin.unarchive:
+    src: "zsh-settings.tar.gz"
+    dest: "/home/{{ device_user }}"
+    copy: true
+    owner: "{{ device_user }}"
+    group: "{{ device_user_group }}"
+  tags:
+    - device_user
+
+- name: Register the existence of .zsh/.zshenv.
+  remote_user: "{{ device_user }}"
+  ansible.builtin.stat:
+    path: "/home/{{ device_user }}/.zsh/.zshenv"
+  register: zshenv
+  tags:
+    - device_user
+
+- name: Link .zshenv.
+  remote_user: "{{ device_user }}"
+  ansible.builtin.file:
+    path: "/home/{{ device_user }}/.zshenv"
+    src: "/home/{{ device_user }}/.zsh/.zshenv"
+    force: true
+    state: link
+  when: zshenv.stat.exists and zshenv.stat.size > 0
+  tags:
+    - device_user

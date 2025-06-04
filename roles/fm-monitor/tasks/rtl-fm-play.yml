@@ -1,0 +1,67 @@
+---
+# roles/fm-monitor/tasks/rtl-fm-play.yml
+
+- name: The rtl-sdr-related pagkages.
+  become: true
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - rtl-sdr
+  tags:
+    - rtl-fm-play
+
+- name: Directory .config/rtl-fm-play.
+  become: true
+  ansible.builtin.file:
+    path: "/home/{{ device_user }}/.config/rtl-fm-play"
+    state: directory
+    owner: "{{ device_user }}"
+    group: "{{ device_user_group }}"
+    mode: "0755"
+  tags:
+    - rtl-fm-play
+
+- name: The rtl-fm-play environment file.
+  ansible.builtin.template:
+    src: rtl-fm-play-environment.j2
+    dest: "/home/{{ device_user }}/.config/rtl-fm-play/environment"
+    owner: "{{ device_user }}"
+    group: "{{ device_user_group }}"
+    mode: "0644"
+  tags:
+    - rtl-fm-play
+
+- name: Directory .local/bin.
+  become: true
+  ansible.builtin.file:
+    path: "/home/{{ device_user }}/.local/bin"
+    state: directory
+    owner: "{{ device_user }}"
+    group: "{{ device_user_group }}"
+    mode: "0755"
+  tags:
+    - rtl-fm-play
+
+- name: The rtl-fm-play launch script.
+  become: true
+  ansible.builtin.copy:
+    src: rtl-fm-play
+    dest: /home/{{ device_user }}/.local/bin/rtl-fm-play
+    owner: "{{ device_user }}"
+    group: "{{ device_user_group }}"
+    mode: "0755"
+  tags:
+    - rtl-fm-play
+
+- name: The rtl-fm-play service.
+  remote_user: "{{ device_user }}"
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - --user
+      - enable
+      - rtl-fm-play
+  changed_when: false
+  tags:
+    - rtl-fm-play

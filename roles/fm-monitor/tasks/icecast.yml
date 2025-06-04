@@ -1,0 +1,45 @@
+---
+# roles/fm-monitor/tasks/icecast.yml
+
+- name: The Icecast2 pagkages.
+  become: true
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - icecast2
+  tags:
+    - icecast
+
+- name: The Icecast2 configuration.
+  become: true
+  ansible.builtin.template:
+    src: icecast.xml.j2
+    dest: /etc/icecast2/icecast.xml
+    owner: "root"
+    group: "icecast"
+    mode: "0644"
+  tags:
+    - icecast
+
+- name: The Icecast2 log directory.
+  become: true
+  ansible.builtin.file:
+    path: /etc/icecast2/log
+    state: directory
+    owner: "root"
+    group: "icecast"
+    mode: "0775"
+  tags:
+    - icecast
+
+- name: The Icecast2 service.
+  become: true
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - enable
+      - icecast2.service
+  changed_when: false
+  tags:
+    - icecast

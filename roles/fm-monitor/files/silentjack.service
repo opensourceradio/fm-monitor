@@ -1,0 +1,22 @@
+[Unit]
+Description = Jack Silence Detection Service
+Requires = pipewire.service
+After = pipewire.service
+
+[Service]
+# Pipewire user session socket. Pipewire is used in lieu of JACK.
+Environment = PIPEWIRE_REMOTE=/run/user/%U/pipewire-0
+# -l -40: silences means lower than -40 dB
+# -p 20: wait for 20 seconds before considering taking action
+# -g 10: wait 10 seconds after a silence event before resuming silence detection
+# Connections are created in ~/.jack-plumbing
+ExecStart = /usr/bin/silentjack -l -40 -p 20 -g 10 %h/.local/bin/silence-detected
+Type = simple
+Restart = always
+KillSignal = SIGHUP
+StandardOutput = journal
+StandardError = inherit
+EnvironmentFile = -/etc/locale.conf
+
+[Install]
+WantedBy = basic.target

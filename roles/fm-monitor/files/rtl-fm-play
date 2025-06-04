@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#######################################################
+##
+## rtl-fm-play - play an FM radio station using RTL-SDR.
+##
+## Dependencies: rtl-sdr, and pipewire-bin packages.
+##
+#######################################################
+
+gain=${GAIN:-20}
+frequency=${FREQUENCY:-"91.9M"}
+sample_rate=${SAMPLE_RATE:-48000}
+
+exec rtl_fm -g ${gain} -f ${frequency} -F 9 -M wbfm -s 600000 -A std -E dc -r ${sample_rate} |
+  pw-play --channels 1 --rate 48000 --volume 1.4 --target 0 --channel-map=mono --format=s16 -
+
+exit

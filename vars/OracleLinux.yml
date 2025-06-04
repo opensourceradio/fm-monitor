@@ -1,0 +1,7 @@
+# OS-specific things for RedHat-based distros.
+pam_ssh_agent_auth_package: pam_ssh_agent_auth
+sudo_group: wheel
+ssh_server_package: openssh-server
+ssh_askpass_package: openssh-askpass
+wireguard_kmod_package: kmod-wireguard
+wireguard_tools_package: wireguard-tools

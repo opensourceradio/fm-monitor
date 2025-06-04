@@ -1,0 +1,20 @@
+#!/bin/bash
+
+##############################################################################
+##
+## silence-deteced - do something when silentjack(1) detects silence
+##
+## This script simply appends lines to the named file each time
+## silentjack detects silence.
+##
+## See also: /etc/jack-plumbing, systemctl --user status silentjack.service
+##
+##############################################################################
+
+current_time="$(date --iso-8601=seconds)"
+
+[[ -f "/var/tmp/${0##*/}.out" ]] || touch "/var/tmp/${0##*/}.out"
+
+printf '%s: silence detected from stream at %s\n' "${0##*/}" "${current_time}" >> "/var/tmp/${0##*/}.out"
+
+exit

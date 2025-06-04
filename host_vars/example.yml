@@ -1,0 +1,53 @@
+---
+device_user: dklann
+device_user_group: dklann
+device_user_gecos: David Klann
+
+# Set in task roles/common/tasks/timezone.yml
+station_timezone: America/Chicago
+
+# roles/fm-monitor/templates/ffmpeg-icecast.j2:  -ice_name "{{ station_ice_name }}" \
+station_ice_name: "WORT 89.9fm"
+
+# roles/fm-monitor/templates/ffmpeg-icecast.j2:  -f ogg "icecast://{{ icecast_source_username }}:{{ icecast_sourcepw }}@{{ icecast_host }}:{{ icecast_port }}/{{ icecast_mountpoint }}"
+# roles/fm-monitor/templates/icecast.xml.j2:    <source-password>{{ icecast_sourcepw }}</source-password>
+icecast_source_username: source
+icecast_sourcepw: hackme
+icecast_host: localhost
+# See below (icecast_ports) for the icecast_port:
+
+# The Icecast mountpoint for this instance
+# roles/fm-monitor/templates/ffmpeg-icecast.j2:
+icecast_mountpoint: wort-fm
+
+# roles/fm-monitor/templates/rtl-fm-play-environment.j2:GAIN={{ station_rtl_fm_gain }}
+station_rtl_fm_gain: 20
+
+# roles/fm-monitor/templates/rtl-fm-play-environment.j2:FREQUENCY={{ station_frequency }}
+station_frequency: "89.9M"
+
+# roles/fm-monitor/templates/rtl-fm-play-environment.j2:SAMPLE_RATE={{ sample_rate }}
+sample_rate: 48000
+
+# roles/fm-monitor/templates/icecast.xml.j2:    {% if icecast_relaypw is defined %}<relay-password>{{ icecast_relaypw }}</relay-password>{% endif +%}
+# icecast_relaypw: hackme
+
+# roles/fm-monitor/templates/icecast.xml.j2:    <admin-user>{{ icecast_adminuser }}</admin-user>
+icecast_adminuser: admin
+
+# roles/fm-monitor/templates/icecast.xml.j2:    <admin-password>{{ icecast_adminpw }}</admin-password>
+icecast_adminpw: hackme
+
+# roles/fm-monitor/templates/icecast.xml.j2:  <hostname>{{ icecast_hostname }}</hostname>
+icecast_hostname: fm-monitor
+
+# roles/fm-monitor/templates/icecast.xml.j2:    <port>{{ icecast_port }}</port>
+# roles/fm-monitor/templates/icecast.xml.j2:    {% if 443 in icecast_ports +%}<ssl-certificate>/usr/share/icecast-{{ icecast_station }}/icecast.pem</ssl-certificate>{% endif +%}
+icecast_ports:
+  - 8000
+
+# roles/fm-monitor/templates/icecast.xml.j2:  {%+ if icecast_optional_section is defined -%}{{ icecast_optional_section }}{%- endif +%}
+# icecast_optional_section
+
+# roles/fm-monitor/templates/icecast.xml.j2:    <basedir>/usr/share/icecast-{{ icecast_station }}</basedir>
+icecast_station: fm-monitor

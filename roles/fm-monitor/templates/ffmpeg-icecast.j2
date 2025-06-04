@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#  -af "volume=12dB,firequalizer=gain='if(lt(f,25),-96,if(gt(f,18750),-96,0))':zero_phase=false:accuracy=16384,aresample=resampler=soxr:osr=48000" \
+
+# Notice: This script fails when an Icecast2-compatible server is not
+# running on TCP port {{ icecast_ports[0] }} at {{ icecast_host }}.
+
+exec ffmpeg -hide_banner -loglevel warning \
+  -f jack -channels 1 \
+  -i icecast \
+  -af "loudnorm=I=-20,firequalizer=gain='if(lt(f,25),-96,if(gt(f,18750),-96,0))':zero_phase=false:accuracy=16384,aresample=resampler=soxr:osr=48000" \
+  -c:a libopus \
+  -b:a 128k \
+  -ac 1 \
+  -content_type "audio/ogg" \
+  -ar 48000 \
+  -ice_name "{{ station_ice_name }}" \
+  -ice_public 0 \
+  -f ogg "icecast://{{ icecast_source_username }}:{{ icecast_sourcepw }}@{{ icecast_host }}:{{ icecast_ports[0] }}/{{ icecast_mountpoint }}"
+
+logger --stderr --tag "${0##*/}" --priority local7.notice --id "NOTICE: unexpected termination of ffmpeg. Return code: '${?}'."
+
+
+exit

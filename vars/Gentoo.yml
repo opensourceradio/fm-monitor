@@ -1,0 +1,4 @@
+# OS-specific things for Gentoo.
+pam_ssh_agent_auth_package: sys-auth/pam_ssh_agent_auth
+sudo_group: wheel
+ssh_server_package: net-misc/openssh

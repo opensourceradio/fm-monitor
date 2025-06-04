@@ -1,0 +1,16 @@
+.ansible/
+*.deb
+*.pdf
+*#
+*~
+*.bak
+test*.yml
+facts-json
+.#*
+*.out
+*.privkey
+wrapper.yml
+*-packages
+host_vars/fm-monitor-2.yml
+zsh-settings.tar.gz
+ssh-keys/*

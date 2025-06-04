@@ -1,0 +1,33 @@
+---
+# roles/fm-monitor/tasks/jack-plumbing.yml
+
+- name: The jack-tools package.
+  become: true
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - jack-tools
+  tags:
+    - jack-plumbing
+
+- name: The jack-plumbing configuration file.
+  remote_user: "{{ device_user }}"
+  ansible.builtin.copy:
+    src: jack-plumbing.conf
+    dest: "/home/{{ device_user }}/.jack-plumbing"
+    mode: "0644"
+  tags:
+    - jack-plumbing
+
+- name: The jack-plumbing service.
+  remote_user: "{{ device_user }}"
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - --user
+      - enable
+      - jack-plumbing.service
+  changed_when: false
+  tags:
+    - jack-plumbing

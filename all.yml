@@ -1,0 +1,38 @@
+---
+# fm-monitor/ansible/all.yml: provision an on-air FM monitor device.
+# Assumptions:
+# - base operating system, e.g., Ubuntu Desktop is installed and updated.
+# - one existing user on the target system with passwordless sudo
+#   - for example, user dklann exists and ~dklann/.ssh/authorized_keys is configured
+#   - package pam_ssh_agent_auth is installed and configured
+- name: Do all of it.
+  hosts: all
+  tasks:
+    - name: Foundation.
+      ansible.builtin.include_role:
+        name: common
+      tags:
+        - timezone
+        - packages
+        - device_user
+
+    - name: Device Setup.
+      ansible.builtin.include_role:
+        name: fm-monitor
+      tags:
+        - icecast
+        - ffmpeg-icecast
+        - rtl-fm-play
+        - silentjack
+        - jack-plumbing
+        - vu-meters
+
+    - name: Reboot.
+      become: true
+      ansible.builtin.reboot:
+        msg: "Rebooting {{ ansible_hostname }}"
+        connect_timeout: 5
+        reboot_timeout: 600
+        test_command: whoami
+      tags:
+        - reboot

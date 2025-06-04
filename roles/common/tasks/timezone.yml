@@ -1,0 +1,19 @@
+---
+# roles/common/tasks/timezone.yml
+- name: Get current timezone.
+  become: true
+  ansible.builtin.shell:
+    cmd: set -o pipefail && timedatectl status | awk '/Time zone:/ {print $3}'
+    executable: /bin/bash
+  register: current_timezone
+  changed_when: false
+
+- name: Timezone.
+  become: true
+  ansible.builtin.command:
+    argv:
+      - timedatectl
+      - set-timezone
+      - "{{ station_timezone }}"
+  changed_when: false
+  when: current_timezone.stdout != station_timezone

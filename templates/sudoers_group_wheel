@@ -1,0 +1,3 @@
+# {{ ansible_managed }}. Changes here will be lost!
+## Allows people in group wheel to run all commands
+%wheel  ALL=(ALL)       ALL

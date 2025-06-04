@@ -1,0 +1,50 @@
+---
+# roles/fm-monitor/tasks/ffmpeg-icecast.yml
+
+- name: The ffmpeg pagkages.
+  become: true
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - ffmpeg
+    - sox
+    - libsox-fmt-all
+    - libsox3
+    - libsoxr0
+  tags:
+    - ffmpeg-icecast
+
+- name: Directory .local/bin.
+  become: true
+  ansible.builtin.file:
+    path: "/home/{{ device_user }}/.local/bin"
+    state: directory
+    owner: "{{ device_user }}"
+    group: "{{ device_user_group }}"
+    mode: "0755"
+  tags:
+    - ffmpeg-icecast
+
+- name: Launch script.
+  become: true
+  ansible.builtin.template:
+    src: ffmpeg-icecast.j2
+    dest: /home/{{ device_user }}/.local/bin/ffmpeg-icecast
+    owner: "{{ device_user }}"
+    group: "{{ device_user_group }}"
+    mode: "0755"
+  tags:
+    - ffmpeg-icecast
+
+- name: The ffmpeg-icecast service.
+  remote_user: "{{ device_user }}"
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - --user
+      - enable
+      - ffmpeg-icecast.service
+  changed_when: false
+  tags:
+    - ffmpeg-icecast

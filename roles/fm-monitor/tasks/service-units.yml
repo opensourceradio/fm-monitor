@@ -1,0 +1,67 @@
+---
+# roles/fm-monitor/task/service-units.yml
+
+- name: Directory .local/share/systemd/user.
+  become: true
+  ansible.builtin.file:
+    path: "/home/{{ device_user }}/.local/share/systemd/user"
+    state: directory
+    owner: "{{ device_user }}"
+    group: "{{ device_user_group }}"
+    mode: "0755"
+  tags:
+    - ffmpeg-icecast
+    - rtl-fm-play
+    - silentjack
+    - jack-plumbing
+
+- name: The service unit files.
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/home/{{ device_user }}/.local/share/systemd/user"
+    owner: "{{ device_user }}"
+    group: "{{ device_user_group }}"
+    mode: "0644"
+  loop:
+    - ffmpeg-icecast.service
+    - jack-plumbing.service
+    - rtl-fm-play.service
+    - silentjack.service
+  notify:
+    - Reload systemd daemon.
+  tags:
+    - ffmpeg-icecast
+    - rtl-fm-play
+    - silentjack
+    - jack-plumbing
+
+- name: User linger current state.
+  become: true
+  ansible.builtin.command:
+    argv:
+      - loginctl
+      - show-user
+      - "{{ device_user }}"
+  changed_when: false
+  register: linger_state
+  tags:
+    - ffmpeg-icecast
+    - rtl-fm-play
+    - silentjack
+    - jack-plumbing
+
+- name: User linger.
+  become: true
+  ansible.builtin.command:
+    argv:
+      - loginctl
+      - enable-linger
+      - "{{ device_user }}"
+  when: linger_state.stdout.find("Linger=yes") < 0
+  changed_when: false
+  tags:
+    - ffmpeg-icecast
+    - rtl-fm-play
+    - silentjack
+    - jack-plumbing

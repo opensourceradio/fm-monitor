@@ -1,0 +1,6 @@
+# OS-specific things for Arch-based distros.
+pam_ssh_agent_auth_package: pam_ssh_agent_auth
+sudo_group: wheel
+ssh_server_package: openssh
+# NOT TESTED:
+ssh_askpass_package: openssh-askpass

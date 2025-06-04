@@ -1,0 +1,55 @@
+---
+# roles/fm-monitor/tasks/main.yml
+#
+# Maintain all the fm-monitor things.
+
+- name: Role-specific variables.
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - defaults/main.yml
+  tags:
+    - vars
+    - icecast
+    - ffmpeg-icecast
+    - rtl-fm-play
+    - silentjack
+    - jack-plumbing
+    - vu-meters
+
+- name: The systemd service unit files.
+  ansible.builtin.include_tasks: service-units.yml
+  tags:
+    - ffmpeg-icecast
+    - rtl-fm-play
+    - silentjack
+    - jack-plumbing
+
+- name: The jack-plumbing configuration and service.
+  ansible.builtin.include_tasks: jack-plumbing.yml
+  tags:
+    - jack-plumbing
+
+- name: The rtl-fm-play stuff.
+  ansible.builtin.include_tasks: rtl-fm-play.yml
+  tags:
+    - rtl-fm-play
+
+- name: Icecast2.
+  ansible.builtin.include_tasks: icecast.yml
+  tags:
+    - icecast
+
+- name: FFmpeg-icecast.
+  ansible.builtin.include_tasks: ffmpeg-icecast.yml
+  tags:
+    - ffmpeg-icecast
+
+- name: Silentjack script.
+  ansible.builtin.include_tasks: silentjack.yml
+  tags:
+    - silentjack
+
+- name: VU meters.
+  ansible.builtin.include_tasks: vu-meters.yml
+  tags:
+    - vu-meters

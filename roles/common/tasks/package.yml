@@ -1,0 +1,9 @@
+---
+# roles/common/tasks/package.yml
+- name: Packages updated.
+  become: true
+  ansible.builtin.package:
+    name: "*"
+    state: latest # noqa: package-latest
+  tags:
+    - packages

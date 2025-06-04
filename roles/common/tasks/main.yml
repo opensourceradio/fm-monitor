@@ -1,0 +1,26 @@
+---
+# roles/common/tasks/main.yml
+#
+# Maintain all the common things.
+
+- name: Gather os specific variables
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+    - "{{ ansible_distribution }}.yml"
+  tags: vars
+
+- name: Timezone.
+  ansible.builtin.include_tasks: timezone.yml
+  tags:
+    - timezone
+
+- name: Packages.
+  ansible.builtin.include_tasks: package.yml
+  tags:
+    - packages
+
+- name: The device user.
+  ansible.builtin.include_tasks: user.yml
+  tags:
+    - device_user

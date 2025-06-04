@@ -1,0 +1,17 @@
+[Unit]
+Description = Jack Plumbing service
+Requires = pipewire.service
+After = pipewire.service
+
+[Service]
+# jack-plumbing(1) says -d do not operate as a daemon.
+# This is a lie. -d causes jack-plumbing to fork.
+ExecStartPre = sleep 5
+ExecStart = /usr/bin/jack-plumbing
+Type = simple
+Restart = always
+StandardError = inherit
+EnvironmentFile = -/etc/locale.conf
+
+[Install]
+WantedBy = basic.target

@@ -1,0 +1,12 @@
+---
+# roles/fm-monitor/handlers/main.yml
+
+# See roles/fm-monitor/tasks/service-units.yml
+- name: Reload systemd daemon.
+  remote_user: "{{ device_user }}"
+  ansible.builtin.command:
+    argv:
+      - systemctl
+      - --user
+      - daemon-reload
+  changed_when: false

@@ -1,0 +1,5 @@
+# OS-specific things for Debian-based distros.
+pam_ssh_agent_auth_package: libpam-ssh-agent-auth
+sudo_group: sudo
+ssh_server_package: openssh-server
+ssh_askpass_package: ssh-askpass

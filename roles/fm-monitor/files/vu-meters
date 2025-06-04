@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Usage meterbridge: [-r ref-level] [-c columns] [-n jack-name] [-t type] <port>+
+# 
+# where ref-level is the reference signal level for 0dB on the meter
+#   and type is the meter type, one of:
+#      'vu'  - classic moving needle VU meter
+#      'ppm' - PPM meter
+#      'dpm' - Digital peak meter
+#      'jf'  - 'Jellyfish' phase meter
+#      'sco' - Oscilloscope meter
+
+# Using a port name of "x". It's arbitrary and not used anywhere...
+
+exec /usr/bin/meterbridge -r -8 -t vu x
+
+exit

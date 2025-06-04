@@ -1,0 +1,16 @@
+[Unit]
+Description = FFMPEG Icecast Service
+Requires = pipewire.service
+After = pipewire.service
+
+[Service]
+Environment = PIPEWIRE_REMOTE=/run/user/%U/pipewire-0
+ExecStart = %h/.local/bin/ffmpeg-icecast
+Type = simple
+Restart = always
+KillSignal = SIGTERM
+StandardError = inherit
+EnvironmentFile = -/etc/locale.conf
+
+[Install]
+WantedBy = basic.target

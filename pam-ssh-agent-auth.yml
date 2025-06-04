@@ -1,0 +1,43 @@
+---
+# Configure all the parts for sudo(8) authorization using SSH agent authentication.
+- hosts: all
+  name: Configure all the parts for sudo(8) authorization using SSH agent authentication.
+  become: true
+
+  tasks:
+
+    - name: Gather os specific variables.
+      ansible.builtin.include_vars: "{{ item }}"
+      with_first_found:
+        - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+        - "{{ ansible_distribution }}.yml"
+      tags: vars
+
+    - name: Install the PAM SSH agent auth package.
+      ansible.builtin.package:
+        name: "{{ pam_ssh_agent_auth_package }}"
+        state: present
+
+    - name: Update pam sudo configuration.
+      ansible.builtin.template:
+        src: "sudo-{{ ansible_distribution }}"
+        dest: /etc/pam.d/sudo
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Preserve the environment variable SSH_AUTH_SOCK.
+      ansible.builtin.template:
+        src: sudoers_ssh_auth_sock
+        dest: /etc/sudoers.d/ssh_auth_sock
+        owner: root
+        group: root
+        mode: '0440'
+
+    - name: Only the appropriate group (OS-dependent) has authority to use sudo(8).
+      ansible.builtin.template:
+        src: "sudoers_group_{{ sudo_group }}"
+        dest: "/etc/sudoers.d/group_{{ sudo_group }}"
+        owner: root
+        group: root
+        mode: '0440'

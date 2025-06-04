@@ -1,0 +1,17 @@
+[Unit]
+Description = RTL FM Service
+Requires = pipewire.service
+After = pipewire.service
+
+[Service]
+Environment = PIPEWIRE_REMOTE=/run/user/%U/pipewire-0
+EnvironmentFile = %h/.config/rtl-fm-play/environment
+ExecStart = %h/.local/bin/rtl-fm-play
+Type = simple
+Restart = always
+KillSignal = SIGTERM
+StandardError = inherit
+EnvironmentFile = -/etc/locale.conf
+
+[Install]
+WantedBy = basic.target
