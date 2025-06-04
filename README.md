@@ -1,11 +1,4 @@
 ---
-    title: On-air FM Monitor and Silence Detector From (almost) Scratch
-    author: David Klann <dklann@broadcasttool.com>
-    date: Wed Jun 04 12:56:49 PM 2025 CDT
-    geometry: left=2cm,right=2cm,top=2cm,bottom=2cm
-    colorlinks: true
-    updated: Wed Jun 04 15:38:09 PM 2025 CDT
----
 <!-- Create formatted output with:
     pandoc --embed-resources --standalone -f markdown -t latex -o README.pdf README.md
 -->
