@@ -1,0 +1,43 @@
+---
+# roles/common/tasks/pipewire-jack.yml
+
+- name: Packages installed.
+  become: true
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: latest  # noqa: package-latest
+  loop:
+    - pipewire-jack
+    - qpwgraph
+  tags:
+    - pipewire-jack
+
+- name: Register the existence of Pipewire JACK library configuration.
+  ansible.builtin.stat:
+    path: /etc/ld.so.conf.d/pipewire-jack-x86_64-linux-gnu.conf
+  register: pipewire_jack_conf
+  tags:
+    - pipewire-jack
+
+- name: Prefer Pipewire JACK library.
+  become: true
+  ansible.builtin.command:
+    argv:
+      - ln
+      - -s
+      - /usr/share/doc/pipewire/examples/ld.so.conf.d/pipewire-jack-x86_64-linux-gnu.conf
+      - /etc/ld.so.conf.d
+  when:
+    not pipewire_jack_conf.stat.exists
+  tags:
+    - pipewire-jack
+
+- name: Reload shared library cache.
+  become: true
+  ansible.builtin.command:
+    argv:
+      - ldconfig
+  when:
+    not pipewire_jack_conf.stat.exists
+  tags:
+    - pipewire-jack
