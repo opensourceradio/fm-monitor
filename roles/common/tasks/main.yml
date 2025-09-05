@@ -15,7 +15,7 @@
   tags:
     - timezone
 
-- name: Packages.
+- name: Packages updated and installed.
   ansible.builtin.include_tasks: package.yml
   tags:
     - packages
@@ -24,3 +24,8 @@
   ansible.builtin.include_tasks: user.yml
   tags:
     - device_user
+
+- name: Pipewire Jack.
+  ansible.builtin.include_tasks: pipewire-jack.yml
+  tags:
+    - pipewire-jack

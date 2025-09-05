@@ -7,3 +7,14 @@
     state: latest # noqa: package-latest
   tags:
     - packages
+
+- name: Common packages installed.
+  become: true
+  ansible.builtin.package:
+    name: "{{ item }}"
+    state: latest # noqa: package-latest
+  loop:
+    - xmlstarlet
+    - jq
+  tags:
+    - packages
