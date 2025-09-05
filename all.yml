@@ -15,6 +15,7 @@
         - timezone
         - packages
         - device_user
+        - pipewire-jack
 
     - name: Device Setup.
       ansible.builtin.include_role:
