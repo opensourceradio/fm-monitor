@@ -6,11 +6,13 @@
 *.bak
 test*.yml
 facts-json
+inventory.yml
 .#*
 *.out
 *.privkey
 wrapper.yml
 *-packages
-host_vars/fm-monitor-2.yml
+host_vars/*.yml
+!host_vars/example.yml
 zsh-settings.tar.gz
 ssh-keys/*
