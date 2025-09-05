@@ -4,21 +4,31 @@
 
 # Notice: This script fails when an Icecast2-compatible server is not
 # running on TCP port {{ icecast_ports[0] }} at {{ icecast_host }}.
+# It also fails if {{ icecast_host }} is unreachable for any reason
+# (like the network is not yet ready).
+#
+# Wait until we have network connectivity before attempting to connect
+# to the stream server.
+while : ; do
+    if host {{ icecast_host }} > /dev/null 2>&1 ; then
+	break
+    fi
+    sleep 3
+done
 
 exec ffmpeg -hide_banner -loglevel warning \
   -f jack -channels 1 \
   -i icecast \
   -af "loudnorm=I=-20,firequalizer=gain='if(lt(f,25),-96,if(gt(f,18750),-96,0))':zero_phase=false:accuracy=16384,aresample=resampler=soxr:osr=48000" \
-  -c:a libopus \
+  -c:a libmp3lame \
   -b:a 128k \
   -ac 1 \
-  -content_type "audio/ogg" \
+  -content_type "audio/mpeg" \
   -ar 48000 \
   -ice_name "{{ station_ice_name }}" \
   -ice_public 0 \
-  -f ogg "icecast://{{ icecast_source_username }}:{{ icecast_sourcepw }}@{{ icecast_host }}:{{ icecast_ports[0] }}/{{ icecast_mountpoint }}"
+  -f mp3 "icecast://{{ icecast_source_username }}:{{ icecast_sourcepw }}@{{ icecast_host }}:{{ icecast_ports[0] }}/{{ icecast_mountpoint }}"
 
 logger --stderr --tag "${0##*/}" --priority local7.notice --id "NOTICE: unexpected termination of ffmpeg. Return code: '${?}'."
-
 
 exit
