@@ -12,6 +12,7 @@
   tags:
     - ffmpeg-icecast
     - rtl-fm-play
+    - rtl_icecast
     - silentjack
     - jack-plumbing
 
@@ -27,12 +28,14 @@
     - ffmpeg-icecast.service
     - jack-plumbing.service
     - rtl-fm-play.service
+    - rtl-icecast.service
     - silentjack.service
   notify:
     - Reload systemd daemon.
   tags:
     - ffmpeg-icecast
     - rtl-fm-play
+    - rtl_icecast
     - silentjack
     - jack-plumbing
 
@@ -48,6 +51,7 @@
   tags:
     - ffmpeg-icecast
     - rtl-fm-play
+    - rtl_icecast
     - silentjack
     - jack-plumbing
 
@@ -63,5 +67,6 @@
   tags:
     - ffmpeg-icecast
     - rtl-fm-play
+    - rtl_icecast
     - silentjack
     - jack-plumbing

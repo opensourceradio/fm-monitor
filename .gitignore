@@ -16,3 +16,4 @@ host_vars/*.yml
 !host_vars/example.yml
 zsh-settings.tar.gz
 ssh-keys/*
+rtl_icecast*

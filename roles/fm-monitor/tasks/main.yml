@@ -12,6 +12,7 @@
     - icecast
     - ffmpeg-icecast
     - rtl-fm-play
+    - rtl_icecast
     - silentjack
     - jack-plumbing
     - vu-meters
@@ -21,6 +22,7 @@
   tags:
     - ffmpeg-icecast
     - rtl-fm-play
+    - rtl_icecast
     - silentjack
     - jack-plumbing
 
@@ -33,6 +35,11 @@
   ansible.builtin.include_tasks: rtl-fm-play.yml
   tags:
     - rtl-fm-play
+
+- name: The rtl_icecast stuff.
+  ansible.builtin.include_tasks: rtl_icecast.yml
+  tags:
+    - rtl_icecast
 
 - name: Icecast2.
   ansible.builtin.include_tasks: icecast.yml
