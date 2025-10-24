@@ -1,4 +1,11 @@
-#!/bin/bash
+#!/bin/zsh
+# shellcheck shell=bash disable=SC2016,SC2086,SC2154,SC2155,SC2299,SC2312
+## SC2016 SC2016 (info): Expressions don't expand in single quotes...
+## SC2086 (info): Double quote to prevent globbing and word splitting.
+## SC2154 (warning): THING is referenced but not assigned.
+## SC2155 (warning): Declare and assign separately to avoid masking return values.
+## SC2299 (error): Parameter expansions can't be nested. (ZSH)
+## SC2312 (info): Consider invoking this command separately...
 
 ##############################################################################
 ##
@@ -9,12 +16,161 @@
 ##
 ## See also: /etc/jack-plumbing, systemctl --user status silentjack.service
 ##
+## updated: Fri Oct 24 11:11:59 AM 2025 CDT
+##
 ##############################################################################
 
-current_time="$(date --iso-8601=seconds)"
+zmodload zsh/datetime
 
-[[ -f "/var/tmp/${0##*/}.out" ]] || touch "/var/tmp/${0##*/}.out"
+# This script complies with Semantic Versioning: http://semver.org/
+declare -ri v_major=0
+declare -ri v_minor=1
+declare -ri v_patch=1
+declare -r v_hash='$Hash$'
 
-printf '%s: silence detected from stream at %s\n' "${0##*/}" "${current_time}" >> "/var/tmp/${0##*/}.out"
+typeset -i right_now=${EPOCHSECONDS}
+typeset -i one_hour=$((60 * 60))
+
+typeset my_name="${0:t}"
+
+############# BEGIN external shell commands used in this script. #############
+# This script uses these 11 external commands.
+# Look for them in their upper case, parameter expanded form.
+our_commands=( awk base64 cat getopt hostname logger tee touch unix2dos uuidgen )
+# Find the executables we need; this uses some basic shell and a ZSH trick:
+# the (U) in the eval says to evaluate the parameter as all upper case
+# letters. This snippet generates shell parameters representing the upper case
+# equivalent of the command names and sets the parameter values to the full path
+# of the commands.
+# Refresh this segment in Emacs by marking the appropriate region (or the whole
+# buffer with C-xH) and replacing it with C-uM-|mk-ourCommands --script (shell-command-on-region).
+typeset C D
+# SC2048: shellcheck overly aggressive quote recommendation.
+# shellcheck disable=SC2048
+for C in ${our_commands[*]} ; do
+    # shellcheck disable=SC2154 # ZSH: ${path} is set by the shell.
+    for D in ${path} ; do
+	# shellcheck disable=SC2140,SC2086,SC2296 # we need the quotes, ZSH-specific expansion
+	[[ -x "${D}/${C}" ]] && { eval "${(U)C//-/_}"="${D}/${C}" ; break ; }
+    done
+    # shellcheck disable=SC2296,SC2312 # ZSH-specific expansion
+    [[ -x $(eval print \$"${(U)C//-/_}") ]] || { print "Cannot find ${C}! Done."; return 1 ; }
+done
+unset our_commands C D
+############## END external shell commands used in this script. ##############
+
+if ! TEMP=$(${GETOPT} -o v --long version -n "${0:t}" -- "${@}") ; then
+    print "getopt(1) Fatal Error (${?}). Terminating..." >&2
+    return 1
+fi
+eval set -- "${TEMP}"
+while : ; do
+    case "${1}" in
+	-V|--version) SHOW_VERSION=1 ; shift ;;
+	--) shift ; break ;;
+	*) print "${0:t}: getopt internal error!. Terminating..." >&2 ; return 1 ;;
+    esac
+done
+unset TEMP
+
+if ((SHOW_VERSION)) ; then
+    typeset commit_hash="${v_hash}"
+    [[ "${v_hash}" == '$Hash$' ]] &&
+	commit_hash="prerelase"
+    print "${my_name}: version ${v_major}.${v_minor}.${v_patch}-${${commit_hash#\$Hash: }%$}"
+    exit 0
+fi
+
+typeset -a MAILTO
+## SC2034 (warning): MAILTO appears unused. (ZSH)
+# shellcheck disable=SC2034
+MAILTO=( dklann@btd.support llu@wgdr.org levi@wgdr.org )
+typeset host_name="$(${HOSTNAME} -f)"
+
+typeset -i hold_time=${HOLD_TIME:-${one_hour}}
+typeset hold_timer_file=/var/tmp/${my_name}-timer
+
+[[ -f /var/tmp/${my_name}.out ]] || ${TOUCH} /var/tmp/${my_name}.out
+
+## Keep a record of all silence detected.
+## SC2248 (style): Prefer double quoting (right_now)
+# shellcheck disable=SC2248
+printf '%s: silence detected from stream at %s\n' "${my_name}" "$(strftime %FT%T ${right_now})" >> /var/tmp/${my_name}.out
+
+## Get the time of the last alert.
+typeset -i last_alert_time=$(${CAT} "${hold_timer_file}")
+
+## Simply log the alert and exit if less than ${hold_time} seconds
+## have elapsed.
+if (( (right_now - last_alert_time) < hold_time )) ; then
+    ${LOGGER} -t "${my_name}" -p local7.info -i "Got a silence alert from silent-jack, but hold time has not expired."
+    exit
+fi
+
+typeset MAILER_CONFIG="${MAILER_CONFIG:-${HOME}/conf.msmtp}"
+if ! [[ -f "${MAILER_CONFIG}" ]] ; then
+    ${LOGGER} -t "${my_name}" -p local7.notice -i "Unable to find msmtp configuration '${MAILER_CONFIG}'. No email sent."
+    exit 5
+fi
+typeset MAILER MAIL_FROM
+typeset -a MAILER_ARGS
+# Look for msmtp(1) if the MAILER_CONFIG exists *and* is readable.
+if [[ -f "${MAILER_CONFIG}" ]] && [[ -r "${MAILER_CONFIG}" ]] ; then
+    MAILER=$(command -v msmtp) ; MAILER="${MAILER:-/usr/bin/msmtp}"
+    if [[ -n "${MAILER}" ]] && [[ -x "${MAILER}" ]] ; then
+	MAILER_ARGS=( --read-recipients --read-envelope-from --file "${MAILER_CONFIG}" )
+    fi
+    MAIL_FROM=$(${AWK} '/^user /{print $2}' "${MAILER_CONFIG}")
+fi
+typeset -i start_time="${right_now}"
+
+## SC2048 (warning): Use "${array[@]}" (with quotes) to prevent whitespace problems.
+## SC2296 (error): Parameter expansions can't start with (. (ZSH)
+# shellcheck disable=SC2048,SC2296
+(
+    ${UNIX2DOS} <<EOF
+To: ${(j:,:)MAILTO[*]}
+From: ${MAIL_FROM}
+Reply-To: ${MAIL_FROM}
+Subject: WGDH Silence Notification from ${my_name}
+Message-ID: <$(${UUIDGEN})-${start_time}@${host_name}>
+X-Script-Name: ${my_name}
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+  boundary="${start_time}"
+
+This is a multi-part message in MIME format.
+--${start_time}
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+
+Sent from ${host_name}.
+
+Silence detected from the RTL-SDR FM radio dongle. Check the stream?
+
+WGDR stream: https://wgdr.broadcasttool.stream/wgdr_128
+FM Monitor: https://wgdr.broadcasttool.stream/wgdh-fm
+
+EOF
+    if [[ -n "${messagefile}" ]] && [[ -s "${messagefile}" ]] ; then
+	${UNIX2DOS} <<EOF
+--${start_time}
+Content-Type: text/plain; charset=UTF-8;
+name="${messagefile:t}"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+filename="${messagefile:t}"
+
+$(${CAT} < "${messagefile}" | ${BASE64})
+EOF
+    fi
+
+    ${UNIX2DOS} <<EOF
+--${start_time}--
+EOF
+) | ${TEE} /tmp/mail-silence.out | ${MAILER} ${MAILER_ARGS[*]}
+
+## Record the time of this silence in the hold timer file.
+printf '%s\n' "${right_now}" > "${hold_timer_file}"
 
 exit
