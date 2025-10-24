@@ -16,7 +16,7 @@
 ##
 ## See also: /etc/jack-plumbing, systemctl --user status silentjack.service
 ##
-## updated: Fri Oct 24 11:11:59 AM 2025 CDT
+## updated: Fri Oct 24 12:40:17 PM 2025 CDT
 ##
 ##############################################################################
 
@@ -25,7 +25,7 @@ zmodload zsh/datetime
 # This script complies with Semantic Versioning: http://semver.org/
 declare -ri v_major=0
 declare -ri v_minor=1
-declare -ri v_patch=1
+declare -ri v_patch=2
 declare -r v_hash='$Hash$'
 
 typeset -i right_now=${EPOCHSECONDS}
@@ -97,8 +97,14 @@ typeset hold_timer_file=/var/tmp/${my_name}-timer
 # shellcheck disable=SC2248
 printf '%s: silence detected from stream at %s\n' "${my_name}" "$(strftime %FT%T ${right_now})" >> /var/tmp/${my_name}.out
 
-## Get the time of the last alert.
-typeset -i last_alert_time=$(${CAT} "${hold_timer_file}")
+## Get the time of the last alert and ensure it is an integer.
+typeset -i last_alert_time
+if [[ -r "${hold_timer_file}" ]] ; then
+    last_alert_time=$(${CAT} "${hold_timer_file}")
+fi
+if ! [[ "${last_alert_time}" =~ ^[[:digit:]]+$ ]] ; then
+    last_alert_time=0
+fi
 
 ## Simply log the alert and exit if less than ${hold_time} seconds
 ## have elapsed.
