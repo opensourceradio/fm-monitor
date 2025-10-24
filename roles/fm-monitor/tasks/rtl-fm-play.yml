@@ -61,7 +61,7 @@
       - systemctl
       - --user
       - enable
-      - rtl-fm-play
+      - rtl-fm-play.service
   changed_when: false
   tags:
     - rtl-fm-play
